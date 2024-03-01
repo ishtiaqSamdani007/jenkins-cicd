@@ -56,10 +56,7 @@ pipeline{
             steps{
                 echo "running in vm through ssh"
                 withCredentials([sshUserPrivateKey(credentialsId: 'ssh-creds', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]){
-                    sh ```
-                        echo $SSH_KEY > ~/.ssh/vm_key
-                        ssh -o StrictHostKeyChecking=no -i  $SSH_USER@$PUBLIC_IP 'docker run -d -p 80:80 ghcr.io/ishtiaqsamdani007/jenkins-react-app:v${env.BUILD_NUMBER}'
-                    ```
+                    sh "ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$PUBLIC_IP 'docker run -d -p 80:80 ghcr.io/ishtiaqsamdani007/jenkins-react-app:v${env.BUILD_NUMBER}'"
 
                 }
             }
