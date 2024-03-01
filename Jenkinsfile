@@ -11,6 +11,7 @@ pipeline{
 
     environment{
         PUBLIC_IP = "34.16.207.19"
+        BUILD_NUMBER = "1"
     }
 
     stages{
@@ -51,12 +52,27 @@ pipeline{
                 sh "docker push ghcr.io/ishtiaqsamdani007/jenkins-react-app:v${env.BUILD_NUMBER}"
             }
         }
+// #############################
+
+        stage("ghcr login in vm through ssh"){
+            steps{
+                echo "logging into vm through ssh"
+                withCredentials([sshUserPrivateKey(credentialsId: 'ssh-creds', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]){
+                    withCredentials([usernamePassword(credentialsId: 'ghcr-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]){
+                    sh "ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$PUBLIC_IP 'docker login ghcr.io -u $USERNAME -p $PASSWORD'"
+                }
+
+                    
+                }
+            }
+        }
 
         stage("run docker in vm through ssh"){
             steps{
                 echo "running in vm through ssh"
                 withCredentials([sshUserPrivateKey(credentialsId: 'ssh-creds', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]){
                     sh "ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$PUBLIC_IP 'docker run -d -p 80:80 ghcr.io/ishtiaqsamdani007/jenkins-react-app:v${env.BUILD_NUMBER}'"
+
 
                 }
             }
