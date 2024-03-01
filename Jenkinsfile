@@ -9,6 +9,10 @@ pipeline{
         nodejs "node"
     }
 
+    environment{
+        PUBLIC_IP = "34.16.207.19"
+    }
+
     stages{
         stage("install react packagees"){
             steps{
@@ -37,16 +41,28 @@ pipeline{
         stage("dockerize react app"){
             steps{
                 echo "dockerizing react app"
-                sh "docker build -t ghcr.io/ishtiaqsamdani007/jenkins-react-app:${env.BUILD_NUMBER} ."
+                sh "docker build -t ghcr.io/ishtiaqsamdani007/jenkins-react-app:v${env.BUILD_NUMBER} ."
             }
         }
 
         stage("push docker image to ghcr"){
             steps{
                 echo "pushing docker image to ghcr"
-                sh "docker push ghcr.io/ishtiaqsamdani007/jenkins-react-app:${env.BUILD_NUMBER}"
+                sh "docker push ghcr.io/ishtiaqsamdani007/jenkins-react-app:v${env.BUILD_NUMBER}"
             }
         }
+
+        stage("run docker in vm through ssh"){
+            steps{
+                echo "running in vm through ssh"
+                withCredentials([sshUserPrivateKey(credentialsId: 'ssh-creds', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]){
+                    sh "ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$PUBLIC_IP 'docker run -d -p 80:80 ghcr.io/ishtiaqsamdani007/jenkins-react-app:v${env.BUILD_NUMBER}'"
+
+                }
+            }
+        }
+                    
+
     }
     post{
         always{
