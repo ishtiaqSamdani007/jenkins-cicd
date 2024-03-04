@@ -77,14 +77,14 @@ pipeline{
             steps{
                 echo "running in vm through ssh"
                 withCredentials([sshUserPrivateKey(credentialsId: 'ssh-creds', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]){
-                    sh ```
+                    sh '''
                         ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$PUBLIC_IP '
                         docker stop react-app || true
                         docker rm react-app || true
                         docker run -d -p 80:80 --name react-app ghcr.io/ishtiaqsamdani007/jenkins-react-app:v${env.BUILD_NUMBER}
                         '
 
-                    ```
+                        '''
 
                 }
             }
