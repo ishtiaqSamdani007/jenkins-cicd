@@ -51,6 +51,13 @@ pipeline{
                 sh "docker push ghcr.io/ishtiaqsamdani007/jenkins-react-app:v${env.BUILD_NUMBER}"
             }
         }
+
+        stage("remove docker image from local"){
+            steps{
+                echo "removing docker image from local"
+                sh "docker rmi ghcr.io/ishtiaqsamdani007/jenkins-react-app:v${env.BUILD_NUMBER}"
+            }
+        }
 // #############################
 
         stage("ghcr login in vm through ssh"){
@@ -66,11 +73,18 @@ pipeline{
             }
         }
 
-        stage("run docker in vm through ssh"){
+        stage("run docker in vm through ssh and remove previous container"){
             steps{
                 echo "running in vm through ssh"
                 withCredentials([sshUserPrivateKey(credentialsId: 'ssh-creds', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]){
-                    sh "ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$PUBLIC_IP 'docker run -d -p 80:80 ghcr.io/ishtiaqsamdani007/jenkins-react-app:v${env.BUILD_NUMBER}'"
+                    sh ```
+                        ssh -o StrictHostKeyChecking=no -i $SSH_KEY $SSH_USER@$PUBLIC_IP '
+                        docker stop react-app || true
+                        docker rm react-app || true
+                        docker run -d -p 80:80 --name react-app ghcr.io/ishtiaqsamdani007/jenkins-react-app:v${env.BUILD_NUMBER}
+                        '
+
+                    ```
 
                 }
             }
