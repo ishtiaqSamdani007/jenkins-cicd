@@ -73,6 +73,15 @@ pipeline{
             }
         }
 
+        stage("create release notes in github"){
+            steps{
+                echo "creating release notes in github"
+                withCredentials([usernamePassword(credentialsId: 'github-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]){
+                    sh "curl -u $USERNAME:$PASSWORD -X POST -H 'Accept: application/vnd.github.v3+json' https://api.github.com/repos/ishtiaqsamdani007/jenkins-react-app/releases -d '{\"tag_name\": \"v${env.BUILD_NUMBER}\", \"name\": \"v${env.BUILD_NUMBER}\", \"body\": \"release notes\"}'"
+                }
+            }
+        }
+
         stage("run docker in vm through ssh and remove previous container"){
             steps{
                 echo "running in vm through ssh"
